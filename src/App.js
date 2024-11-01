@@ -5,7 +5,7 @@ const initialFriends = [
     id: 118836,
     name: "Clark",
     image: "https://i.pravatar.cc/48?u=118836",
-    balance: -7.78,
+    balance: -7,
   },
   {
     id: 933372,
@@ -39,14 +39,25 @@ export default function App() {
   }
 
   function handleAddFriend(friend) {
-    setFriends((friends) => [...friends, friend]); //  [...friend, friend] is creating a new array and adding a new object
+    setFriends((friends) => [...friends, friend]); //  [...friends, friend] is creating a new array and adding a new object
     setShowAddFriend(false);
   }
 
   function handleSelection(friend) {
-    // setSelectedFriend(friend);
     setSelectedFriend((cur) => (cur?.id === friend.id ? null : friend));
     setShowAddFriend(false);
+  }
+
+  function handleSplitBill(value) {
+    // console.log(`SplitBill: ${value}`);
+    setFriends((friends) =>
+      friends.map((friend) =>
+        friend.id === selectedFriend.id
+          ? { ...friend, balance: friend.balance + value }
+          : friend
+      )
+    );
+    setSelectedFriend(null);
   }
 
   return (
@@ -64,14 +75,18 @@ export default function App() {
           {showAddFriend ? "Close" : "Add friend"}
         </Button>
       </div>
-      {selectedFriend && <FormSplitBill selectedFriend={selectedFriend} />}
+      {selectedFriend && (
+        <FormSplitBill
+          selectedFriend={selectedFriend}
+          onSplitBill={handleSplitBill}
+        />
+      )}
     </div>
   );
 }
 
 function FriendsList({ friends, selectedFriend, onSelection }) {
   // const friends = initialFriends;
-
   return (
     <ul>
       {friends.map((friend) => (
@@ -156,7 +171,7 @@ function FormAddFriend({ onAddFriend }) {
   );
 }
 
-function FormSplitBill({ selectedFriend }) {
+function FormSplitBill({ selectedFriend, onSplitBill }) {
   const [bill, setBill] = useState("");
   const [paidByUser, setPaidByUser] = useState("");
   const [whoIsPaying, setWhoIsPaying] = useState("user");
@@ -165,9 +180,11 @@ function FormSplitBill({ selectedFriend }) {
 
   function handleSubmit(e) {
     e.preventDefault();
+    onSplitBill(whoIsPaying === "user" ? paidByFriend : -paidByUser);
 
     if (!bill || !paidByUser) return;
   }
+
   return (
     <form className="form-split-bill" onSubmit={handleSubmit}>
       <h2>Split a bill with {selectedFriend.name} </h2>
